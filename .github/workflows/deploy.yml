@@ -1,0 +1,107 @@
+# ============================================
+# Hepza CI/CD — Dual Stack Deploy
+# ============================================
+# push test  → Deploy STAGING  (api2.hepza.click)
+# push main  → Deploy PRODUCTION (hepza.click)
+# ============================================
+
+name: Deploy Hepza
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+on:
+  push:
+    branches: [main, test]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "DEPLOY_DIR=/opt/hepza-prod" >> $GITHUB_ENV
+            echo "COMPOSE_SRC=docker-compose.prod.yml" >> $GITHUB_ENV
+            echo "COMPOSE_PROJECT=hepza-prod" >> $GITHUB_ENV
+            echo "DOMAIN=https://hepza.click" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_DIR=/opt/hepza-staging" >> $GITHUB_ENV
+            echo "COMPOSE_SRC=docker-compose.staging.yml" >> $GITHUB_ENV
+            echo "COMPOSE_PROJECT=hepza-staging" >> $GITHUB_ENV
+            echo "DOMAIN=https://api2.hepza.click" >> $GITHUB_ENV
+          fi
+
+      - name: Sync code to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "ServerSide/,ClientSide/,docker-compose.prod.yml,docker-compose.staging.yml,docker-compose.monitoring.yml,monitoring/"
+          target: ${{ env.DEPLOY_DIR }}
+          overwrite: true
+
+      - name: Rebuild on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 10m
+          script: |
+            cd ${{ env.DEPLOY_DIR }}
+
+            # Copy đúng compose file
+            cp ${{ env.COMPOSE_SRC }} docker-compose.yml
+
+            # Tạo .env cho build
+            echo "VITE_SERVER_URL=${{ env.DOMAIN }}" > .env
+            echo "VITE_CLIENT_URL=${{ env.DOMAIN }}" >> .env
+            echo "VITE_USE_SOCKET_API=true" >> .env
+
+            # Tạo .env.monitoring cho Grafana
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              echo "GRAFANA_ADMIN_USER=admin" > .env.monitoring
+              echo "GRAFANA_ADMIN_PASSWORD=admin" >> .env.monitoring
+              echo "GRAFANA_ROOT_URL=http://localhost:3002" >> .env.monitoring
+            fi
+
+            # Rebuild
+            if [ "${{ github.ref_name }}" = "main" ]; then
+              docker compose -p ${{ env.COMPOSE_PROJECT }} down 2>/dev/null || true
+              docker compose -p ${{ env.COMPOSE_PROJECT }} \
+                -f docker-compose.yml \
+                -f docker-compose.monitoring.yml \
+                up -d --build
+            else
+              docker compose -p ${{ env.COMPOSE_PROJECT }} down 2>/dev/null || true
+              docker compose -p ${{ env.COMPOSE_PROJECT }} up -d --build
+            fi
+
+            echo "✅ Deploy ${{ github.ref_name }} → ${{ env.DOMAIN }}"
+
+      - name: Health Check
+        run: |
+          sleep 30
+          echo "Checking health at ${{ env.DOMAIN }}/api/health..."
+
+          # Retry 3 times with 10s delay
+          for i in 1 2 3; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${{ env.DOMAIN }}/api/health" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Health Check PASSED (attempt $i)"
+              exit 0
+            fi
+            echo "Attempt $i failed with status $STATUS, retrying..."
+            sleep 10
+          done
+
+          echo "❌ Health Check FAILED after 3 attempts"
+          exit 1

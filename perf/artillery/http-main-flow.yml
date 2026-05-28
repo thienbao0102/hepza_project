@@ -1,0 +1,72 @@
+config:
+  target: "{{ $processEnvironment.BASE_URL }}"
+  phases:
+    - duration: "{{ $processEnvironment.ARTILLERY_RAMP_SECONDS || 300 }}"
+      arrivalRate: "{{ $processEnvironment.ARTILLERY_START_RATE || 1 }}"
+      rampTo: "{{ $processEnvironment.ARTILLERY_TARGET_RATE || 20 }}"
+      name: Ramp up
+    - duration: "{{ $processEnvironment.ARTILLERY_HOLD_SECONDS || 900 }}"
+      arrivalRate: "{{ $processEnvironment.ARTILLERY_TARGET_RATE || 20 }}"
+      name: Hold
+  payload:
+    path: "../data/users.local.csv"
+    fields:
+      - email
+      - password
+      - role
+      - flow
+      - company_id
+      - zone_id
+      - user_id
+    skipHeader: true
+    order: sequence
+  processor: "./processor.cjs"
+  defaults:
+    headers:
+      Content-Type: application/json
+
+scenarios:
+  - name: Authenticated main read flow
+    beforeScenario: "preparePeriodWindow"
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "{{ email }}"
+            password: "{{ password }}"
+      - get:
+          url: "/api/auth/me"
+      - get:
+          url: "/api/report/get-summary-record"
+          qs:
+            role: "{{ role }}"
+            periodKeyStart: "{{ period_start }}"
+            periodKeyEnd: "{{ period_end }}"
+            include: 1
+            company_id: "{{ company_id }}"
+            zone_id: "{{ zone_id }}"
+      - think: 1
+      - get:
+          url: "/api/emission/get-emission-data"
+          qs:
+            periodKeyStart: "{{ period_start }}"
+            periodKeyEnd: "{{ period_end }}"
+            include: 1
+            company_id: "{{ company_id }}"
+            zone_id: "{{ zone_id }}"
+      - think: 1
+      - get:
+          url: "/api/resource-waste/get-data-resource"
+          qs:
+            periodKeyStart: "{{ period_start }}"
+            periodKeyEnd: "{{ period_end }}"
+            include: 1
+            company_id: "{{ company_id }}"
+            zone_id: "{{ zone_id }}"
+      - think: 1
+      - get:
+          url: "/api/notifications/my-notifications"
+          qs:
+            page: 1
+            limit: 20
+            sort: newest

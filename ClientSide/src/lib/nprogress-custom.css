@@ -1,0 +1,98 @@
+/* Custom NProgress styles with blue color */
+
+/* Bar */
+#nprogress .bar {
+  background: #3b82f6 !important; /* Blue color */
+  position: fixed;
+  z-index: 1031;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+}
+
+/* Peg */
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #3b82f6, 0 0 5px #3b82f6 !important;
+  opacity: 1.0;
+  transform: rotate(3deg) translate(0px, -4px);
+}
+
+/* Spinner */
+#nprogress .spinner {
+  display: block;
+  position: fixed;
+  z-index: 1031;
+  top: 15px;
+  right: 15px;
+}
+
+#nprogress .spinner-icon {
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: solid 2px transparent;
+  border-top-color: #3b82f6 !important;
+  border-left-color: #3b82f6 !important;
+  border-radius: 50%;
+  animation: nprogress-spinner 400ms linear infinite;
+}
+
+.nprogress-custom {
+  pointer-events: none;
+}
+
+.nprogress-custom .bar {
+  background: linear-gradient(to right, #3b82f6, #1d4ed8) !important;
+  position: fixed;
+  z-index: 1031;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  border-radius: 0 0 2px 2px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+@keyframes nprogress-spinner {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Remove spinner on smaller screens */
+@media screen and (max-width: 768px) {
+  #nprogress .spinner {
+    display: none;
+  }
+}
+
+/* Custom fade in/out animations */
+#nprogress {
+  transition: opacity 0.3s ease;
+}
+
+#nprogress.nprogress-busy {
+  opacity: 1;
+}
+
+/* Blue glow effect */
+#nprogress .bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+  animation: nprogress-glow 2s ease-in-out infinite;
+}
+
+@keyframes nprogress-glow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}

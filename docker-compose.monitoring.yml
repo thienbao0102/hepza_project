@@ -1,0 +1,105 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: hepza-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-30d}'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    ports:
+      - '127.0.0.1:9090:9090'
+    restart: unless-stopped
+    networks:
+      - hepza-network
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    container_name: hepza-grafana
+    env_file:
+      - .env.monitoring
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-change-me}
+      - GF_SERVER_ROOT_URL=${GRAFANA_ROOT_URL:-http://localhost:3001}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/hepza-overview.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - '127.0.0.1:3002:3000'
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - hepza-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: hepza-node-exporter
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:9100:9100'
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - hepza-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: hepza-cadvisor
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - '/:/rootfs:ro'
+      - '/var/run:/var/run:rw'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker:/var/lib/docker:ro'
+    networks:
+      - hepza-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.63.0
+    container_name: hepza-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    ports:
+      - '127.0.0.1:9121:9121'
+    restart: unless-stopped
+    networks:
+      - hepza-network
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.1.0
+    container_name: hepza-nginx-exporter
+    command:
+      - '--nginx.scrape-uri=https://5.223.53.80:443/nginx_status'
+      - '--no-nginx.ssl-verify'
+    ports:
+      - '127.0.0.1:9113:9113'
+    restart: unless-stopped
+    networks:
+      - hepza-network
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  hepza-network:
+    external: true

@@ -1,0 +1,54 @@
+ClientSide/.env
+ServerSide/.env
+ServerSide/tests
+ServerSide/jest.config.js
+# Agent
+.agent/
+.claude/
+.codex/
+.github/get-shit-done/
+.github/agents/
+
+# Production secrets (NEVER commit)
+.env.production
+.env.monitoring
+certbot/
+
+# Docker
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Performance testing
+perf/data/users.local.csv
+perf/results/
+
+
+.planning/
+
+.env
+
+node_modules
+
+.security-review
+
+*.txt
+*.py
+
+# Security scan artifacts
+security-reports/
+.security-tmp/
+*.cookie
+*.cookies
+*.jar
+*zap-options*
+*auth-response*
+
+# Build/test artifacts
+ClientSide/coverage/
+ServerSide/coverage/
+ClientSide/dist/
+ServerSide/dist/
+ServerSide/uploads/
+__pycache__/
+*.pyc
+

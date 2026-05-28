@@ -1,0 +1,250 @@
+[
+  {
+    "zone_name": "KCN An Hạ",
+    "zone_type": "KCN",
+    "location": "Lô 32-34 Khu T, đường N3, xã Phạm Văn Hai, huyện Bình Chánh, TP.HCM.",
+    "established_year": 2001,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1754596363/hepza/blobs/image/32cb195238fc0b4e4c8ad33780d7413a.webp"
+  },
+  {
+    "zone_name": "KCN Bình Chiểu",
+    "zone_type": "KCN",
+    "location": "Liên Tỉnh lộ 43, phường Bình Chiểu, TP. Thủ Đức, TP.HCM.",
+    "established_year": 1998,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755142461/hepza/blobs/image/c141c35dd0853c013a5937efae7d7a23.jpg"
+  },
+  {
+    "zone_name": "KCN Cát Lái 2",
+    "zone_type": "KCN",
+    "location": "Đường Nguyễn Thị Định, phường Thạnh Mỹ Lợi, Quận 2, TP.HCM.",
+    "established_year": 2010,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1772810011/hepza/blobs/image/866d0729666a290a0650bc80d1e781be.png"
+  },
+  {
+    "zone_name": "KCN Cơ khí ô tô",
+    "zone_type": "KCN",
+    "location": "Xã Hòa Phú và xã Tân Thạnh Đông, huyện Củ Chi, TP.HCM.",
+    "established_year": 2014,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143180/hepza/blobs/image/051ced8dd8c78c192ba968383a818c48.jpg"
+  },
+  {
+    "zone_name": "KCN Đông Nam",
+    "zone_type": "KCN",
+    "location": "Xã Bình Mỹ và xã Hòa Phú, huyện Củ Chi, TP.HCM.",
+    "established_year": 2009,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143430/hepza/blobs/image/3815386b1b4fb6b3636f167b13e5da59.jpg"
+  },
+  {
+    "zone_name": "KCN Hiệp Phước",
+    "zone_type": "KCN",
+    "location": "Khu B, Đường số 1, xã Hiệp Phước, huyện Nhà Bè, TP.HCM.",
+    "established_year": 1996,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755077041/hepza/blobs/image/220f6074fa9c5652db6d179dabf976ab.jpg"
+  },
+  {
+    "zone_name": "KCN Lê Minh Xuân",
+    "zone_type": "KCN",
+    "location": "550 Kinh Dương Vương, phường An Lạc, quận Bình Tân, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143487/hepza/blobs/image/ad1d417d7353c5ab6235144481b52998.jpg"
+  },
+  {
+    "zone_name": "KCN Lê Minh Xuân 3",
+    "zone_type": "KCN",
+    "location": "Đường Trần Văn Giàu, xã Lê Minh Xuân, huyện Bình Chánh, TP.HCM.",
+    "established_year": 2014,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143535/hepza/blobs/image/d3bafa7c8781010ec717d5eeaa4f0cf7.jpg"
+  },
+  {
+    "zone_name": "KCN Tân Bình",
+    "zone_type": "KCN",
+    "location": "108 Tây Thạnh, phường 15, quận Tân Bình, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143600/hepza/blobs/image/614d85b7452f5256e401a2d38ae1ae3d.jpg"
+  },
+  {
+    "zone_name": "KCN Tân Phú Trung",
+    "zone_type": "KCN",
+    "location": "Quốc lộ 22, Ấp Trạm Bơm, xã Tân Phú Trung, huyện Củ Chi, TP.HCM.",
+    "established_year": 2003,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143665/hepza/blobs/image/39312d41670cec3f4e3482c1b9fad589.jpg"
+  },
+  {
+    "zone_name": "KCN Tân Tạo",
+    "zone_type": "KCN",
+    "location": "Lô 16, đường số 2, phường Tân Tạo A, quận Bình Tân, TP.HCM.",
+    "established_year": 1996,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143756/hepza/blobs/image/0f379a39775d7dad585b74174ced11e1.jpg"
+  },
+  {
+    "zone_name": "KCN Tân Thới Hiệp",
+    "zone_type": "KCN",
+    "location": "KP3, đường Nguyễn Ảnh Thủ, phường Hiệp Thành, quận 12, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755143915/hepza/blobs/image/a98ef97846230485ffb04b8496a8684d.jpg"
+  },
+  {
+    "zone_name": "KCN Tây Bắc Củ Chi",
+    "zone_type": "KCN",
+    "location": "Đường D3, xã Tân An Hội, huyện Củ Chi, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755144035/hepza/blobs/image/595252d2592a1abc10161b60ccfce211.jpg"
+  },
+  {
+    "zone_name": "KCN Vĩnh Lộc",
+    "zone_type": "KCN",
+    "location": "Lô A59/I, đường số 07, phường Bình Hưng Hòa B, quận Bình Tân, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755144165/hepza/blobs/image/a4ee2c90fbbbbb06e8c300882af69eb8.jpg"
+  },
+  {
+    "zone_name": "KCN Protrade",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1774937342/hepza/blobs/image/8f9d5534fc07e0132ea78f031b94e66b.jpg"
+  },
+  {
+    "zone_name": "KCN VSIP 2A",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN VSIP 1",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Mỹ Phước",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Phú Mỹ 2",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN VSIP 3",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Mỹ Phước 2",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Bàu Bàng",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Mỹ Xuân A",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Mỹ Phước 3",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN VSIP 2",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Bàu Bàng Mở Rộng",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCN Phú Mỹ 1",
+    "zone_type": "KCN",
+    "location": "Chưa cập nhật",
+    "established_year": null,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "Khu Công Nghiệp Đất Cuốc",
+    "zone_type": "KCN",
+    "location": "Xã Đất Cuốc, Huyện Tân Uyên, Tỉnh Bình Dương ",
+    "established_year": 2006,
+    "status": "active",
+    "image_url": ""
+  },
+  {
+    "zone_name": "KCX Linh Trung 1",
+    "zone_type": "KCX",
+    "location": "Khu phố 4, phường Linh Trung, TP. Thủ Đức, TP.HCM.",
+    "established_year": 1992,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755144279/hepza/blobs/image/d39320fe05f26f3c2cbc07b46569f349.jpg"
+  },
+  {
+    "zone_name": "KCX Linh Trung 2",
+    "zone_type": "KCX",
+    "location": "Đường số 8, phường Bình Chiểu, TP. Thủ Đức, TP.HCM.",
+    "established_year": 1997,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755144466/hepza/blobs/image/37ad8c560a273439ebcb5f62e9fa0673.jpg"
+  },
+  {
+    "zone_name": "KCX Tân Thuận",
+    "zone_type": "KCX",
+    "location": "Đường Bùi Văn Ba, phường Tân Thuận Đông, quận 7, TP.HCM.",
+    "established_year": 1991,
+    "status": "active",
+    "image_url": "https://res.cloudinary.com/dm76t4dsy/image/upload/v1755144872/hepza/blobs/image/b0be4f8d6a988807f26127ae79f92b54.png"
+  }
+]

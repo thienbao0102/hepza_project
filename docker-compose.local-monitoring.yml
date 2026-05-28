@@ -1,0 +1,111 @@
+# ============================================================
+# Local Monitoring Stack for HEPZA Benchmark
+# ============================================================
+# Usage: docker compose -f docker-compose.local.yml -f docker-compose.local-monitoring.yml up -d
+#
+# All tools are 100% FREE & Open Source:
+#   - Prometheus (Apache 2.0)
+#   - Grafana OSS (AGPLv3)
+#   - cAdvisor (Apache 2.0) -- Linux only
+#   - Node Exporter (Apache 2.0) -- Linux only
+#   - Redis Exporter (MIT)
+# ============================================================
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: hepza-local-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus/prometheus.local.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_local_data:/prometheus
+    ports:
+      - '9090:9090'
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - hepza-local-network
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    container_name: hepza-local-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/hepza-overview.json
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_local_data:/var/lib/grafana
+    ports:
+      - '3001:3000'
+    depends_on:
+      prometheus:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - hepza-local-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.63.0
+    container_name: hepza-local-redis-exporter
+    environment:
+      - REDIS_ADDR=redis://redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - hepza-local-network
+
+  # ── Container metrics (CPU / Memory / Network per container) ──
+  # cAdvisor requires Linux host; skip on Windows/macOS Docker Desktop
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: hepza-local-cadvisor
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - '/:/rootfs:ro'
+      - '/var/run:/var/run:rw'
+      - '/sys:/sys:ro'
+      - '/var/lib/docker:/var/lib/docker:ro'
+    ports:
+      - '8080:8080'
+    networks:
+      - hepza-local-network
+    profiles:
+      - linux # Only starts with --profile linux (skipped on Windows)
+
+  # ── Host-level metrics (CPU / RAM / Disk / Network of the VM) ──
+  # node-exporter requires Linux host; skip on Windows/macOS Docker Desktop
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: hepza-local-node-exporter
+    command:
+      - '--path.rootfs=/host'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - hepza-local-network
+    profiles:
+      - linux # Only starts with --profile linux (skipped on Windows)
+
+volumes:
+  prometheus_local_data:
+    driver: local
+  grafana_local_data:
+    driver: local

@@ -1,0 +1,9 @@
+email,password,role,flow,company_id,zone_id,user_id
+company001@example.com,ChangeMe123!,company,company_dashboard,CP001,,UCOMP001
+company002@example.com,ChangeMe123!,company,company_history,CP002,,UCOMP002
+company003@example.com,ChangeMe123!,company,notification_reader,CP003,,UCOMP003
+company004@example.com,ChangeMe123!,company,export_light,CP004,,UCOMP004
+manager001@example.com,ChangeMe123!,manager,manager_monitor,,ZN001,UMGR001
+manager002@example.com,ChangeMe123!,manager,socket_presence,,ZN001,UMGR002
+admin001@example.com,ChangeMe123!,admin,admin_overview,,,UADM001
+company005@example.com,ChangeMe123!,company,export_download,CP005,,UCOMP005

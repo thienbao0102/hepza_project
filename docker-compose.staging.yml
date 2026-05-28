@@ -1,0 +1,87 @@
+# ============================================
+# Hepza STAGING — docker-compose
+# Port host-local only: frontend=3001, backend=5002, redis=6380
+# ============================================
+
+services:
+  frontend:
+    build:
+      context: ./ClientSide
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL:-https://api2.hepza.click}
+        VITE_CLIENT_URL: ${VITE_CLIENT_URL:-https://api2.hepza.click}
+        VITE_USE_SOCKET_API: ${VITE_USE_SOCKET_API:-true}
+    container_name: hepza-staging-frontend
+    ports:
+      - "3001:80"
+    restart: unless-stopped
+    networks:
+      - hepza-network
+
+  backend:
+    build: ./ServerSide
+    container_name: hepza-staging-backend
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - WORKER_PORT=5001
+      - REDIS_URL=redis://hepza-staging-redis:6379
+    ports:
+      - "5002:5000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - hepza-network
+
+  worker:
+    build: ./ServerSide
+    container_name: hepza-staging-worker
+    command: node worker/notificationWorker.js
+    env_file: .env.production
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - WORKER_PORT=5001
+      - REDIS_URL=redis://hepza-staging-redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    networks:
+      - hepza-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: hepza-staging-redis
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy noeviction
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_staging_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - hepza-network
+
+volumes:
+  redis_staging_data:
+
+networks:
+  hepza-network:
+    name: hepza-network
+    driver: bridge

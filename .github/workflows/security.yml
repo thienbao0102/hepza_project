@@ -1,0 +1,382 @@
+name: Security Analysis
+
+on:
+  push:
+    branches: [test]
+  workflow_dispatch:
+    inputs:
+      run_sca:
+        description: Run SCA checkpoint scan
+        required: false
+        type: boolean
+        default: true
+      run_sonar:
+        description: Run SonarQube checkpoint scan
+        required: false
+        type: boolean
+        default: true
+      run_coverage:
+        description: Run optional coverage generation
+        required: false
+        type: boolean
+        default: false
+  workflow_run:
+    workflows: ["Deploy Hepza"]
+    types: [completed]
+    branches: [test]
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  SECURITY_REPORT_ONLY: ${{ vars.SECURITY_REPORT_ONLY || 'true' }}
+
+jobs:
+  coverage:
+    name: Coverage (Optional)
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            ClientSide/package-lock.json
+            ServerSide/package-lock.json
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: ClientSide
+        run: npm ci
+
+      - name: Install backend dependencies from lockfile
+        working-directory: ServerSide
+        run: npm ci
+
+      - name: Generate frontend coverage
+        working-directory: ClientSide
+        continue-on-error: true
+        run: npm run test:coverage
+
+      - name: Generate backend coverage
+        working-directory: ServerSide
+        continue-on-error: true
+        run: npm run test:coverage
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            ClientSide/coverage/lcov.info
+            ServerSide/coverage/lcov.info
+
+  sca:
+    name: SCA
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_sca)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      HUSKY: 0
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            ClientSide/package-lock.json
+            ServerSide/package-lock.json
+
+      - name: Install frontend dependencies from lockfile
+        working-directory: ClientSide
+        run: npm ci
+
+      - name: Install backend dependencies from lockfile
+        working-directory: ServerSide
+        run: npm ci
+
+      - name: Run npm audit in report-only mode
+        shell: bash
+        continue-on-error: true
+        run: |
+          set +e
+          mkdir -p security-reports/npm/raw
+          (cd ClientSide && npm audit --json > ../security-reports/npm/raw/clientside-audit.json) || true
+          (cd ServerSide && npm audit --json > ../security-reports/npm/raw/serverside-audit.json) || true
+
+      - name: Run Trivy filesystem scan in report-only mode
+        shell: bash
+        continue-on-error: true
+        run: |
+          set +e
+          mkdir -p security-reports/trivy/raw
+          TRIVY_COMMON_ARGS=(
+            fs /workspace
+            --exit-code 0
+            --scanners vuln,secret,misconfig
+            --skip-dirs /workspace/ClientSide/node_modules
+            --skip-dirs /workspace/ServerSide/node_modules
+            --skip-dirs /workspace/ClientSide/dist
+            --skip-dirs /workspace/ServerSide/dist
+            --skip-dirs /workspace/ClientSide/coverage
+            --skip-dirs /workspace/ServerSide/coverage
+            --skip-dirs /workspace/security-reports
+            --skip-dirs /workspace/.security-tmp
+            --skip-dirs /workspace/ServerSide/uploads
+            --skip-files /workspace/.env
+            --skip-files /workspace/.env.*
+            --skip-files /workspace/ClientSide/.env
+            --skip-files /workspace/ServerSide/.env
+          )
+
+          docker run --rm -v "$PWD:/workspace" aquasec/trivy:latest \
+            "${TRIVY_COMMON_ARGS[@]}" \
+            --format json \
+            --output /workspace/security-reports/trivy/raw/trivy.json || true
+
+          docker run --rm -v "$PWD:/workspace" aquasec/trivy:latest \
+            "${TRIVY_COMMON_ARGS[@]}" \
+            --format sarif \
+            --output /workspace/security-reports/trivy/raw/trivy.sarif || true
+
+          docker run --rm -v "$PWD:/workspace" aquasec/trivy:latest \
+            "${TRIVY_COMMON_ARGS[@]}" \
+            --format table \
+            --output /workspace/security-reports/trivy/raw/trivy.txt || true
+
+      - name: Redact security reports
+        if: always()
+        shell: bash
+        run: |
+          node scripts/security/redact-security-artifacts.js \
+            --input security-reports \
+            --output security-reports/sanitized
+
+      - name: Upload sanitized SCA reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitized-sca-reports-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            security-reports/sanitized/**
+            !**/.env*
+            !**/*cookie*
+            !**/*Cookie*
+            !**/*.jar
+            !**/*zap-options*
+            !**/node_modules/**
+            !**/dist/**
+            !**/coverage/**
+            !**/uploads/**
+
+  sonar:
+    name: SonarQube
+    if: >-
+      always() &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.run_sonar)) &&
+      (needs.coverage.result == 'success' || needs.coverage.result == 'skipped' || needs.coverage.result == 'failure')
+    needs: [coverage]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || secrets.SONAR_HOST_URL }}
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Cache SonarQube scanner data
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.sonar/cache
+            ~/.sonar/js
+            ~/.sonar/native-sonar-scanner
+          key: ${{ runner.os }}-sonar-${{ hashFiles('sonar-project.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-sonar-
+
+      - name: Download coverage artifacts
+        if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.run_coverage)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports-${{ github.run_id }}
+          path: .
+
+      - name: Prepare SonarQube inputs
+        shell: bash
+        run: |
+          mkdir -p security-reports/sonar/raw
+          python - <<'PY'
+          from pathlib import Path
+
+          coverage_candidates = [
+              "ClientSide/coverage/lcov.info",
+              "ServerSide/coverage/lcov.info",
+          ]
+          available_coverage = [path for path in coverage_candidates if Path(path).is_file()]
+
+          properties_path = Path("sonar-project.properties")
+          marker = "sonar.javascript.lcov.reportPaths="
+          updated_lines = []
+          for line in properties_path.read_text(encoding="utf-8").splitlines():
+              if line.startswith(marker):
+                  line = f"{marker}{','.join(available_coverage)}"
+              updated_lines.append(line)
+          properties_path.write_text("\n".join(updated_lines) + "\n", encoding="utf-8")
+
+          summary_path = Path("security-reports/sonar/raw/sonar-summary.md")
+          if available_coverage:
+              summary_path.write_text(
+                  "Coverage artifacts detected for SonarQube: "
+                  + ", ".join(available_coverage)
+                  + "\n",
+                  encoding="utf-8",
+              )
+          else:
+              summary_path.write_text(
+                  "Coverage artifacts were unavailable for this run; SonarQube ran without LCOV import.\n",
+                  encoding="utf-8",
+              )
+          PY
+
+      - name: Setup Java 21 for SonarScanner
+        if: env.SONAR_HOST_URL != '' && env.SONAR_TOKEN != ''
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Run SonarQube scan in report-only mode
+        if: env.SONAR_HOST_URL != '' && env.SONAR_TOKEN != ''
+        continue-on-error: true
+        timeout-minutes: 40
+        uses: sonarsource/sonarqube-scan-action@v6
+        with:
+          args: >
+            -Dsonar.scanner.connectTimeout=30
+            -Dsonar.scanner.socketTimeout=300
+            -Dsonar.scanner.responseTimeout=300
+            -Dsonar.plugins.download.timeout=300
+        env:
+          SONAR_HOST_URL: ${{ env.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+          SONAR_SCANNER_SKIP_JRE_PROVISIONING: true
+
+      - name: Record skipped SonarQube scan
+        if: env.SONAR_HOST_URL == '' || env.SONAR_TOKEN == ''
+        shell: bash
+        run: |
+          printf '%s\n' 'SonarQube was skipped because SONAR_HOST_URL or SONAR_TOKEN was not configured.' > security-reports/sonar/raw/sonar-summary.md
+
+      - name: Redact SonarQube reports
+        if: always()
+        shell: bash
+        env:
+          REDACT_VALUES: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          node scripts/security/redact-security-artifacts.js \
+            --input security-reports \
+            --output security-reports/sanitized
+
+      - name: Upload sanitized SonarQube reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitized-sonar-reports-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            security-reports/sanitized/**
+            !**/.env*
+            !**/*cookie*
+            !**/*Cookie*
+            !**/*.jar
+            !**/*zap-options*
+            !**/node_modules/**
+            !**/dist/**
+            !**/coverage/**
+            !**/uploads/**
+
+  zap-dast:
+    name: Authenticated ZAP DAST
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SECURITY_REPORT_ONLY: ${{ vars.SECURITY_REPORT_ONLY || 'true' }}
+      ZAP_TARGET_URL: ${{ vars.ZAP_TARGET_URL || 'https://api2.hepza.click' }}
+      ZAP_STAGING_CONFIRMED: ${{ vars.ZAP_STAGING_CONFIRMED || 'false' }}
+      ZAP_ALLOW_CUSTOM_TARGET: ${{ vars.ZAP_ALLOW_CUSTOM_TARGET || 'false' }}
+      ZAP_INCLUDE_MUTATIONS: ${{ vars.ZAP_INCLUDE_MUTATIONS || 'false' }}
+      ZAP_EXPECTED_ROLE: company
+      ZAP_EXPECTED_USER_ID: ${{ vars.ZAP_EXPECTED_USER_ID }}
+      ZAP_AUTH_EMAIL: ${{ secrets.ZAP_AUTH_EMAIL }}
+      ZAP_AUTH_PASSWORD: ${{ secrets.ZAP_AUTH_PASSWORD }}
+      ZAP_DOCKER_TIMEOUT_SECONDS: 900
+      ZAP_MAX_SCAN_MINUTES: 10
+      ZAP_PASSIVE_WAIT_SECONDS: 120
+      ZAP_RATE_LIMIT_RPS: 2
+      ZAP_ACTIVE_DELAY_MS: 500
+      ZAP_ACTIVE_THREADS_PER_HOST: 1
+
+    steps:
+      - name: Checkout deployed commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Run authenticated ZAP scan
+        shell: bash
+        run: bash scripts/security/zap-auth-scan.sh
+
+      - name: Upload sanitized ZAP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sanitized-zap-reports-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            security-reports/sanitized/zap/**
+            !**/.env*
+            !**/*cookie*
+            !**/*Cookie*
+            !**/*.jar
+            !**/*zap-options*
+            !**/node_modules/**
+            !**/dist/**
+            !**/coverage/**
+            !**/uploads/**

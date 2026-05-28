@@ -1,0 +1,95 @@
+.tab-navigation-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+    width: 100%;
+}
+
+.tab-navigation-container {
+    display: flex;
+    padding: 6px;
+    background: rgba(241, 245, 249, 0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 16px;
+    gap: 4px;
+}
+
+.modern-tab-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tab-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    transition: all 0.3s;
+}
+
+.tab-icon-wrapper.active {
+    color: #4E5BA6;
+}
+
+.tab-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.tab-label.active {
+    color: #4E5BA6;
+}
+
+.modern-tab-item:hover .tab-icon-wrapper:not(.active),
+.modern-tab-item:hover .tab-label:not(.active) {
+    color: #475569;
+}
+
+.modern-tab-item:active {
+    transform: scale(0.97);
+}
+
+@media (max-width: 1024px) {
+    .modern-tab-item {
+        padding: 8px 12px;
+    }
+    
+    .tab-label {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tab-navigation-container {
+        overflow-x: auto;
+        max-width: 100%;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE/Edge */
+    }
+    
+    .tab-navigation-container::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    /* We can show labels on mobile if they fit, or keep them as is */
+    .tab-label {
+        /* font-size: 12px; */
+    }
+    
+    .modern-tab-item {
+        padding: 8px 10px;
+    }
+}

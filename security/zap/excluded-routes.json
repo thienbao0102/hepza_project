@@ -1,0 +1,44 @@
+{
+  "excludedExact": [
+    "GET /api/metrics",
+    "POST /api/auth/change-password",
+    "POST /api/auth/request-password-reset",
+    "GET /api/auth/reset-password/init",
+    "POST /api/auth/reset-password",
+    "POST /api/auth/logout",
+    "POST /api/auth/refresh",
+    "POST /api/auth/resend-login-otp",
+    "POST /api/auth/verify-login-otp"
+  ],
+  "excludedPathContains": [
+    "/admin-reset-password",
+    "/hard-delete",
+    "/delete",
+    "/delete-",
+    "/restore",
+    "/update",
+    "/create",
+    "/add-",
+    "/add_",
+    "/insert-data",
+    "/import",
+    "/upload",
+    "/download",
+    "/export",
+    "/error-logs",
+    "/tax-lookup",
+    "/set-representative",
+    "/verify_email_otp",
+    "/profile/update_profile",
+    "/reset-password",
+    "/change-password",
+    "/logout",
+    "/refresh",
+    "/get-deleted",
+    "/preview-soft-delete",
+    "/preview-hard-delete"
+  ],
+  "excludedTags": [
+    "Error Log.Js"
+  ]
+}

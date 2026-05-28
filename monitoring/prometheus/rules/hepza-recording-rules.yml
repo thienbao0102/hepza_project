@@ -1,0 +1,30 @@
+groups:
+  - name: hepza-recording-rules
+    interval: 30s
+    rules:
+      - record: hepza:http_requests:rate1m
+        expr: sum(rate(hepza_http_requests_total{route!="/api/metrics"}[1m]))
+
+      - record: hepza:http_errors_4xx:rate5m
+        expr: sum(rate(hepza_http_errors_total{status_class="4xx"}[5m]))
+
+      - record: hepza:http_errors_5xx:rate5m
+        expr: sum(rate(hepza_http_errors_total{status_class="5xx"}[5m]))
+
+      - record: hepza:http_latency:p95
+        expr: histogram_quantile(0.95, sum by (le) (rate(hepza_http_request_duration_seconds_bucket{route!="/api/metrics"}[5m])))
+
+      - record: hepza:http_latency:p99
+        expr: histogram_quantile(0.99, sum by (le) (rate(hepza_http_request_duration_seconds_bucket{route!="/api/metrics"}[5m])))
+
+      - record: hepza:cache_hit_rate:ratio5m
+        expr: |
+          sum(rate(hepza_cache_operations_total{operation="get",result="hit"}[5m]))
+          /
+          sum(rate(hepza_cache_operations_total{operation="get"}[5m]))
+
+      - record: hepza:mongodb_pool_usage:ratio
+        expr: |
+          hepza_mongodb_pool_active
+          /
+          hepza_mongodb_pool_size
